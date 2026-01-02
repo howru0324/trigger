@@ -1,126 +1,825 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>Trigger Finger – A1 Pulley Simulator</title>
+  <meta charset="UTF-8">
+  <title>Trigger Finger – A1 Pulley (Sagittal View)</title>
 
-<!-- PWA 필수 -->
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#020617">
-<link rel="manifest" href="manifest.json">
+  <!-- PWA 설정 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#020617">
+  <link rel="manifest" href="manifest.json">
 
-<style>
-/* ===== 기존 CSS 그대로 유지 ===== */
-body{
-  margin:0;
-  background:#020617;
-  display:flex;
-  justify-content:center;
-  padding:20px;
-  font-family:-apple-system, system-ui;
-  color:#e5e7eb;
-}
-.app{
-  width:950px;
-  border:1px solid #1f2937;
-  border-radius:14px;
-  padding:16px;
-  background:#020617;
-  box-shadow:0 20px 40px rgba(0,0,0,0.5);
-}
-.title{
-  font-size:20px;
-  font-weight:700;
-}
-.subtitle{
-  font-size:12px;
-  color:#9ca3af;
-  margin-top:2px;
-}
-.controls{
-  margin-top:10px;
-  display:flex;
-  justify-content:flex-start;
-  gap:8px;
-}
-.mode-btn{
-  font-size:12px;
-  padding:4px 10px;
-  border-radius:999px;
-  border:1px solid #4b5563;
-  background:#020617;
-  color:#e5e7eb;
-  cursor:pointer;
-}
-.mode-btn.active{
-  background:#0ea5e9;
-  border-color:#38bdf8;
-  color:#0b1120;
-  font-weight:600;
-}
-.stage{
-  margin-top:10px;
-  position:relative;
-  border-radius:12px;
-  overflow:hidden;
-  border:1px solid #374151;
-  background:#020617;
-}
-canvas{
-  width:100%;
-  height:420px;
-  display:block;
-}
-.footer{
-  margin-top:8px;
-  font-size:12px;
-  color:#9ca3af;
-}
-</style>
+  <style>
+    body{
+      margin:0;
+      background:#020617;
+      display:flex;
+      justify-content:center;
+      padding:20px;
+      font-family:-apple-system, system-ui;
+      color:#e5e7eb;
+    }
+    .app{
+      width:1100px;
+      border:1px solid #1f2937;
+      border-radius:14px;
+      padding:16px;
+      background:#020617;
+      box-shadow:0 20px 40px rgba(0,0,0,0.5);
+    }
+    .title{
+      font-size:20px;
+      font-weight:700;
+    }
+    .subtitle{
+      font-size:12px;
+      color:#9ca3af;
+      margin-top:2px;
+    }
+    .controls{
+      margin-top:10px;
+      display:flex;
+      justify-content:flex-start;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .mode-btn{
+      font-size:12px;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid #4b5563;
+      background:#020617;
+      color:#e5e7eb;
+      cursor:pointer;
+    }
+    .mode-btn.active{
+      background:#0ea5e9;
+      border-color:#38bdf8;
+      color:#0b1120;
+      font-weight:600;
+    }
+    .severity-label{
+      font-size:11px;
+      color:#9ca3af;
+      margin-left:12px;
+      margin-right:2px;
+    }
+    .stage{
+      margin-top:10px;
+      position:relative;
+      border-radius:12px;
+      overflow:hidden;
+      border:1px solid #374151;
+      background:#020617;
+    }
+    canvas{
+      width:100%;
+      height:620px;
+      display:block;
+    }
+    .footer{
+      margin-top:8px;
+      font-size:12px;
+      color:#9ca3af;
+    }
+  </style>
 </head>
-
 <body>
 
 <div class="app">
-  <div class="title">Trigger Finger – PIP Tunnel</div>
+  <div class="title">Trigger Finger – A1 Pulley (Sagittal View)</div>
   <div class="subtitle">
-    Flexor tendon이 volar side 터널(PIP pulley) 안을 지나는 모습 · Normal / Trigger 모드 전환
+    Sagittal view 손가락 · 피부 레이어 안에 bone 윤곽 · Normal / Trigger / Post-op(A1 release)
   </div>
 
   <div class="controls">
-    <button id="btn-normal" class="mode-btn active">Normal 모드</button>
+    <button id="btn-normal"  class="mode-btn active">Normal 모드</button>
     <button id="btn-trigger" class="mode-btn">Trigger 모드</button>
+    <button id="btn-postop"  class="mode-btn">Post-op 모드</button>
+
+    <span class="severity-label">Severity:</span>
+    <button id="sev-mild" class="mode-btn">Mild</button>
+    <button id="sev-moderate" class="mode-btn active">Moderate</button>
+    <button id="sev-severe" class="mode-btn">Severe</button>
   </div>
 
   <div class="stage">
-    <canvas id="c" width="950" height="420"></canvas>
+    <canvas id="c" width="1100" height="620"></canvas>
   </div>
 
   <div class="footer">
-    🔴 힘줄 끝(드래그 버튼)을 <b>왼쪽으로 드래그</b>하면 → tension ↑ → 손가락이 굽혀지고,<br>
-    nodule은 항상 <b>DIP 부근에서 시작</b>해서 드래그 비율만큼 근위로 gliding 합니다.<br>
-    Trigger 모드에서는 pulley 직전에서 nodule·버튼이 함께 멈췄다가, 일정 힘에서 ‘툭’ release 후  
-    다시 부드럽게 움직입니다. 손가락 뼈는 실제 지골 형태에 가깝게 표현되어 있습니다.
+    🔴 힘줄 끝(드래그 버튼)을 <b>아래쪽으로 드래그</b>하면 → tension ↑ → 손가락이 굽혀지고,<br>
+    nodule은 항상 <b>proximal phalanx의 가운데</b>에서 시작해 근위 방향으로 gliding 합니다.<br>
+    Trigger 모드에서는 MCP(A1 pulley) 직전에서 nodule·버튼이 함께 멈췄다가, 일정 힘에서 ‘툭’ release(박수 같은 딱! 소리) 후 다시 부드럽게 움직입니다.<br>
+    Post-op 모드에서는 A1 pulley의 <b>아래쪽으로만</b> 터널 높이가 커져, nodule이 끼임 없이 잘 gliding 되는 모습을 보여줍니다.
   </div>
 </div>
 
 <script>
-/* ===== 기존 JS 그대로 (원장님 코드) ===== */
-/* == 여기 내용은 그대로 두시면 됩니다 == */
-/*     ↓↓↓ 원래 시뮬레이터 코드 전체 그대로 유지 ↓↓↓  */
-/* 지금 쓰시던 시뮬레이터 JS 코드 전부 여기에 그대로 넣으면 됩니다 */
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const W = canvas.width;
+const H = canvas.height;
+
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+// 모드: "normal" | "trigger" | "postop"
+let mode = "normal";
+
+// tension
+let tension = 0;
+let targetTension = 0;
+
+// tendon path
+let tendonPath = [];
+
+// nodule 위치 파라미터 (경로 상 0~1)
+const MCP_S   = 0.40;
+const DIP_S   = 0.55;
+const JAM_S   = MCP_S + 0.03;
+const PROX_S  = 0.20;
+
+// severity 프리셋
+const TRIGGER_SEVERITY = {
+  mild: {
+    noduleRadius: 8,
+    jamT: 0.30,
+    releaseT: 0.55,
+    pulleyClearance: 1.3
+  },
+  moderate: {
+    noduleRadius: 10,
+    jamT: 0.25,
+    releaseT: 0.45,
+    pulleyClearance: 1.0
+  },
+  severe: {
+    noduleRadius: 12,
+    jamT: 0.20,
+    releaseT: 0.40,
+    pulleyClearance: 0.8
+  }
+};
+
+let currentSeverityKey = "moderate";
+let severity = TRIGGER_SEVERITY[currentSeverityKey];
+
+// nodule 상태
+const nodule = {
+  s: DIP_S,
+  radius: TRIGGER_SEVERITY[currentSeverityKey].noduleRadius,
+  tension: 0,
+  compression: 0,
+  jamProgress: 0
+};
+
+// trigger 상태
+let stuck = false;
+let justSnapped = false;
+let snapShakeFrames = 0;
+let hasReleased = false;
+let releaseBaseS = MCP_S;
+
+// 드래그 핸들 (수직 드래그)
+const handle = {
+  dragging:false,
+  baseX: W*0.30,
+  baseY: H*0.80,
+  x:0,
+  y:0,
+  r:16,
+  maxDrag:160,
+  startMouseY:0,
+  startHandleY:0
+};
+handle.x = handle.baseX;
+handle.y = handle.baseY;
+
+// 오디오
+let audioCtx = null;
+function playSnapSound(){
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if(!audioCtx){
+      audioCtx = new AC();
+    }
+    const ctxA = audioCtx;
+
+    const duration = 0.14;
+    const sampleRate = ctxA.sampleRate;
+    const buffer = ctxA.createBuffer(1, Math.floor(sampleRate * duration), sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i=0; i<data.length; i++){
+      const t = i / sampleRate;
+      const env = Math.exp(-t * 25);
+      const noise = (Math.random() * 2 - 1);
+      data[i] = noise * env;
+    }
+
+    const noiseSource = ctxA.createBufferSource();
+    noiseSource.buffer = buffer;
+
+    const filter = ctxA.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = 1600;
+    filter.Q.value = 1.0;
+
+    const gain = ctxA.createGain();
+    const now = ctxA.currentTime;
+
+    gain.gain.setValueAtTime(1.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    noiseSource.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctxA.destination);
+
+    noiseSource.start(now);
+    noiseSource.stop(now + duration);
+  } catch(e){}
+}
+
+// 버튼
+const btnNormal  = document.getElementById("btn-normal");
+const btnTrigger = document.getElementById("btn-trigger");
+const btnPostop  = document.getElementById("btn-postop");
+
+const sevMildBtn     = document.getElementById("sev-mild");
+const sevModerateBtn = document.getElementById("sev-moderate");
+const sevSevereBtn   = document.getElementById("sev-severe");
+
+function resetTriggerState() {
+  targetTension = 0;
+  tension = 0;
+  nodule.tension = 0;
+  nodule.compression = 0;
+  nodule.jamProgress = 0;
+  stuck = false;
+  justSnapped = false;
+  snapShakeFrames = 0;
+  hasReleased = false;
+  releaseBaseS = MCP_S;
+  nodule.s = DIP_S;
+}
+
+function setMode(newMode){
+  mode = newMode;
+  [btnNormal, btnTrigger, btnPostop].forEach(b=>b.classList.remove("active"));
+  if (newMode === "normal")  btnNormal.classList.add("active");
+  if (newMode === "trigger") btnTrigger.classList.add("active");
+  if (newMode === "postop")  btnPostop.classList.add("active");
+  resetTriggerState();
+}
+
+btnNormal.addEventListener("click", ()=> setMode("normal"));
+btnTrigger.addEventListener("click", ()=> setMode("trigger"));
+btnPostop .addEventListener("click", ()=> setMode("postop"));
+
+function setSeverity(key){
+  currentSeverityKey = key;
+  severity = TRIGGER_SEVERITY[key];
+  nodule.radius = severity.noduleRadius;
+
+  [sevMildBtn, sevModerateBtn, sevSevereBtn].forEach(b=>b.classList.remove("active"));
+  if (key === "mild") sevMildBtn.classList.add("active");
+  else if (key === "moderate") sevModerateBtn.classList.add("active");
+  else if (key === "severe") sevSevereBtn.classList.add("active");
+
+  nodule.compression = 0;
+  nodule.jamProgress = 0;
+}
+
+sevMildBtn.addEventListener("click",     ()=> setSeverity("mild"));
+sevModerateBtn.addEventListener("click", ()=> setSeverity("moderate"));
+sevSevereBtn.addEventListener("click",   ()=> setSeverity("severe"));
+
+function loop(){
+  tension += (targetTension - tension) * 0.15;
+  if(!handle.dragging && Math.abs(tension) < 0.001) tension = 0;
+
+  nodule.tension = clamp(tension, 0, 1);
+
+  if (mode === "trigger") {
+    updateTriggerState(tension);
+  } else {
+    stuck = false;
+    hasReleased = false;
+    justSnapped = false;
+    snapShakeFrames = 0;
+    const t = clamp(tension, 0, 1);
+    nodule.s = DIP_S - (DIP_S - PROX_S) * t;
+  }
+
+  updateCompression();
+  updateJamProgress();
+
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function updateTriggerState(t){
+  const JAM_T = severity.jamT;
+  const RELEASE_T = severity.releaseT;
+  justSnapped = false;
+
+  if (t <= 0.001){
+    stuck = false;
+    hasReleased = false;
+    nodule.s = DIP_S;
+    return;
+  }
+
+  if (hasReleased){
+    const alpha = clamp((t - RELEASE_T) / (1 - RELEASE_T), 0, 1);
+    nodule.s = releaseBaseS - (releaseBaseS - PROX_S) * alpha;
+    return;
+  }
+
+  if (!stuck){
+    if (t < JAM_T){
+      const ratio = t / JAM_T;
+      nodule.s = DIP_S - (DIP_S - JAM_S) * ratio;
+      return;
+    } else {
+      nodule.s = JAM_S;
+
+      if (t < RELEASE_T){
+        stuck = true;
+        return;
+      } else {
+        stuck = false;
+        hasReleased = true;
+        releaseBaseS = MCP_S - 0.04;
+        if (releaseBaseS < 0) releaseBaseS = 0;
+        nodule.s = releaseBaseS;
+        justSnapped = true;
+        snapShakeFrames = 8;
+        playSnapSound();
+        return;
+      }
+    }
+  } else {
+    const JAM_T_CLAMP = JAM_T + 0.0001;
+    const creep = clamp((t - JAM_T) / (RELEASE_T - JAM_T_CLAMP), 0, 1);
+    const smallShift = (JAM_S - MCP_S) * 0.20 * creep;
+    nodule.s = JAM_S - smallShift;
+
+    if (t >= RELEASE_T){
+      stuck = false;
+      hasReleased = true;
+      releaseBaseS = MCP_S - 0.04;
+      if (releaseBaseS < 0) releaseBaseS = 0;
+      nodule.s = releaseBaseS;
+      justSnapped = true;
+      snapShakeFrames = 8;
+      playSnapSound();
+    }
+  }
+}
+
+function updateCompression(){
+  const PULLEY_SPAN = 0.06;
+  const ds = Math.abs(nodule.s - MCP_S);
+
+  if (ds > PULLEY_SPAN){
+    nodule.compression = 0;
+    return;
+  }
+
+  const inside = 1 - ds / PULLEY_SPAN;
+  const sizeFactor = nodule.radius / 9;
+  let raw = inside * sizeFactor / severity.pulleyClearance;
+
+  if (mode === "postop") {
+    raw *= 0.25;
+  }
+
+  nodule.compression = clamp(raw, 0, 1);
+}
+
+function updateJamProgress(){
+  const t = nodule.tension;
+  const c = nodule.compression;
+  const v = 0.6 * t + 0.4 * c;
+  nodule.jamProgress = clamp(v, 0, 1);
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+
+  const baseX = W*0.30;
+  const baseY = H*0.70;
+
+  drawFingerBonesAndPath(baseX, baseY);
+  updateHandlePosition();
+  drawVolarTendonAndTunnel();
+  drawHandle();
+  drawTensionMeter();
+}
+
+// 손가락
+function drawFingerBonesAndPath(baseX, baseY){
+  const lengths = [90, 120,110,95];
+  const widths  = [52, 46, 40,34];
+  const maxDeg  = [5, 40,60,75];
+
+  let flexFactor = tension;
+  if (mode === "trigger" && stuck) {
+    flexFactor = tension * 0.35;
+  } else if (mode === "trigger" && justSnapped) {
+    flexFactor = Math.min(1, tension + 0.3);
+  }
+
+  const angles = maxDeg.map(d => d * flexFactor * Math.PI/180);
+
+  tendonPath.length = 0;
+
+  ctx.save();
+  ctx.translate(baseX, baseY);
+
+  let ax = 0, ay = 0;
+  let acc = 0;
+
+  for(let i=0;i<4;i++){
+    acc += angles[i];
+
+    const baseAngle = -Math.PI/2;
+    const worldAngle = baseAngle + acc;
+    const cosA = Math.cos(worldAngle);
+    const sinA = Math.sin(worldAngle);
+    const tangent = { x: cosA, y: sinA };
+    const normal  = { x: -sinA, y:  cosA };
+
+    const L = lengths[i];
+    const w = widths[i];
+    const softW = w * 1.45;
+
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.rotate(worldAngle);
+
+    // 피부 레이어
+    ctx.beginPath();
+    ctx.moveTo(0, -softW*0.42);
+    ctx.quadraticCurveTo(L*0.12, -softW*0.70, L*0.38, -softW*0.60);
+    ctx.quadraticCurveTo(L*0.72, -softW*0.50, L*0.99, -softW*0.34);
+    ctx.quadraticCurveTo(L*1.10, -softW*0.08, L*1.08, 0);
+    ctx.quadraticCurveTo(L*1.10,  softW*0.10, L*0.98, softW*0.34);
+    ctx.quadraticCurveTo(L*0.65,  softW*0.58, L*0.36, softW*0.52);
+    ctx.quadraticCurveTo(L*0.10,  softW*0.44, 0,  softW*0.32);
+    ctx.quadraticCurveTo(-L*0.02, softW*0.12, 0, -softW*0.42);
+    ctx.closePath();
+
+    const skinGrad = ctx.createLinearGradient(0, -softW*0.8, 0, softW*0.8);
+    skinGrad.addColorStop(0, "#fee2c0");
+    skinGrad.addColorStop(0.5, "#fec89a");
+    skinGrad.addColorStop(1, "#fca36a");
+    ctx.fillStyle = skinGrad;
+    ctx.fill();
+
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = "rgba(124, 45, 18, 0.35)";
+    ctx.stroke();
+
+    // bone 윤곽
+    ctx.beginPath();
+    ctx.moveTo(0, -w*0.35);
+    ctx.quadraticCurveTo(L*0.10, -w*0.65, L*0.35, -w*0.55);
+    ctx.quadraticCurveTo(L*0.70, -w*0.45, L*0.98, -w*0.32);
+    ctx.quadraticCurveTo(L*1.08, -w*0.10, L*1.06, 0);
+    ctx.quadraticCurveTo(L*1.08,  w*0.10, L*0.96,  w*0.32);
+    ctx.quadraticCurveTo(L*0.65,  w*0.55, L*0.35,  w*0.50);
+    ctx.quadraticCurveTo(L*0.10,  w*0.42, 0,  w*0.30);
+    ctx.quadraticCurveTo(-L*0.02, w*0.10, 0, -w*0.35);
+    ctx.closePath();
+
+    ctx.globalAlpha = 0.85;
+    ctx.lineWidth = 2.0;
+    ctx.strokeStyle = "rgba(248, 250, 252, 0.95)";
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+
+    // medullary cavity
+    ctx.beginPath();
+    ctx.moveTo(L*0.20, -w*0.12);
+    ctx.quadraticCurveTo(L*0.50, -w*0.26, L*0.78, -w*0.12);
+    ctx.quadraticCurveTo(L*0.82,  0,      L*0.76,  w*0.12);
+    ctx.quadraticCurveTo(L*0.48,  w*0.24, L*0.26,  w*0.16);
+    ctx.quadraticCurveTo(L*0.20,  w*0.08, L*0.20, -w*0.12);
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.55)";
+    ctx.lineWidth = 1.0;
+    ctx.stroke();
+
+    ctx.restore();
+
+    const jointX = ax + L * tangent.x;
+    const jointY = ay + L * tangent.y;
+    ctx.beginPath();
+    ctx.arc(jointX, jointY, 4, 0, Math.PI*2);
+    ctx.fillStyle = "#f97316";
+    ctx.fill();
+
+    const volarOffset = softW*0.55;
+    const startVolarLocal = {
+      x: ax + normal.x * volarOffset,
+      y: ay + normal.y * volarOffset
+    };
+
+    let endVolarLocal;
+    if (i < 3) {
+      endVolarLocal = {
+        x: jointX + normal.x * volarOffset,
+        y: jointY + normal.y * volarOffset
+      };
+    } else {
+      const midLocal = {
+        x: ax + tangent.x * (L * 0.5) + normal.x * volarOffset,
+        y: ay + tangent.y * (L * 0.5) + normal.y * volarOffset
+      };
+      endVolarLocal = midLocal;
+    }
+
+    const startGlobal = { x: startVolarLocal.x + baseX, y: startVolarLocal.y + baseY };
+    const endGlobal   = { x: endVolarLocal.x   + baseX, y: endVolarLocal.y   + baseY };
+
+    if (i === 0) tendonPath.push(startGlobal);
+    tendonPath.push(endGlobal);
+
+    ax = jointX;
+    ay = jointY;
+  }
+
+  ctx.restore();
+
+  if (tendonPath.length > 0) {
+    handle.baseX = tendonPath[0].x;
+    handle.baseY = tendonPath[0].y;
+    if (!handle.dragging) {
+      handle.x = handle.baseX;
+      handle.y = handle.baseY;
+    }
+  }
+}
+
+function updateHandlePosition(){
+  if (mode === "trigger" && stuck) {
+    const JAM_T = severity.jamT;
+    const jamY = handle.baseY + handle.maxDrag * JAM_T;
+    handle.y = jamY;
+    handle.x = handle.baseX;
+  } else {
+    const y = handle.baseY + handle.maxDrag * tension;
+    handle.y = y;
+    handle.x = handle.baseX;
+  }
+}
+
+function drawVolarTendonAndTunnel(){
+  if (tendonPath.length < 4) return;
+
+  const a1Index = 1;
+  const a1 = tendonPath[a1Index];
+  const next = tendonPath[a1Index + 1];
+  const angle = Math.atan2(next.y - a1.y, next.x - a1.x);
+  const isPostop = (mode === "postop");
+
+  const baseHeight = 30;
+  const postopHeight = 55;
+  const wTunnel = 60;
+  const hOuter = isPostop ? postopHeight : baseHeight;
+  const outerTopY = -baseHeight / 2;
+  const outerHeight = hOuter;
+
+  ctx.save();
+
+  const path = [{ x: handle.x, y: handle.y }, ...tendonPath];
+
+  ctx.lineWidth = 8;
+  ctx.lineCap   = "round";
+  ctx.strokeStyle = "rgba(248, 113, 113, 0.95)";
+  ctx.beginPath();
+  ctx.moveTo(path[0].x, path[0].y);
+  for (let i=1; i<path.length; i++){
+    ctx.lineTo(path[i].x, path[i].y);
+  }
+  ctx.stroke();
+
+  const n = path.length;
+  const scaled = nodule.s * (n-1);
+  const i0 = Math.floor(scaled);
+  const i1 = Math.min(n-1, i0+1);
+  const frac = scaled - i0;
+
+  const p0 = path[i0];
+  const p1 = path[i1];
+  let nx = p0.x + (p1.x - p0.x)*frac;
+  let ny = p0.y + (p1.y - p0.y)*frac;
+
+  if (mode === "trigger" && snapShakeFrames > 0) {
+    const k = snapShakeFrames / 8;
+    const dx = (Math.random() - 0.5) * 6 * k;
+    const dy = (Math.random() - 0.5) * 4 * k;
+    nx += dx;
+    ny += dy;
+    snapShakeFrames -= 1;
+  }
+
+  // 가로로 눌리고(폭↓), 세로로 퍼지는(높이↑) 형태
+  const baseR = nodule.radius;
+  const c = clamp(nodule.compression, 0, 1);
+  const j = clamp(nodule.jamProgress, 0, 1);
+
+  const finalRx = baseR * (1 - 0.6 * c);  // width 감소
+  const finalRy = baseR * (1 + 0.8 * c);  // height 증가
+
+  ctx.beginPath();
+  ctx.ellipse(nx, ny, finalRx, finalRy, 0, 0, Math.PI*2);
+
+  const rr = Math.round(230 + 25 * j);
+  const gg = Math.round(140 - 70 * j);
+  const bb = Math.round(140 - 100 * j);
+  ctx.fillStyle = `rgb(${rr}, ${gg}, ${bb})`;
+  ctx.fill();
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(254, 226, 226, 0.9)";
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.ellipse(nx - finalRx*0.25, ny - finalRy*0.35, finalRx*0.35, finalRy*0.35, 0, 0, Math.PI*2);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+  ctx.fill();
+
+  // A1 pulley (최상위)
+  ctx.save();
+  ctx.translate(a1.x, a1.y);
+  ctx.rotate(angle);
+
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(-wTunnel/2, outerTopY, wTunnel, outerHeight, 16);
+  } else {
+    ctx.rect(-wTunnel/2, outerTopY, wTunnel, outerHeight);
+  }
+
+  if (isPostop) {
+    ctx.fillStyle = "#020617";
+  } else {
+    ctx.fillStyle = "rgba(15, 23, 42, 0.96)";
+  }
+  ctx.fill();
+
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#38bdf8";
+  ctx.stroke();
+
+  const innerTopY = outerTopY + 5;
+  const innerHeight = outerHeight - 10;
+
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(
+      -wTunnel/2 + 6,
+      innerTopY,
+      wTunnel - 12,
+      innerHeight,
+      12
+    );
+  } else {
+    ctx.rect(
+      -wTunnel/2 + 6,
+      innerTopY,
+      wTunnel - 12,
+      innerHeight
+    );
+  }
+  ctx.setLineDash([4,3]);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.9)";
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+  ctx.restore();
+}
+
+function drawHandle(){
+  const {x,y,r} = handle;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2);
+
+  const g = ctx.createRadialGradient(x-4,y-4,3,x,y,r);
+  g.addColorStop(0,"#fed7e2");
+  g.addColorStop(1,"#fb7185");
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#fee2e2";
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(x,y,r-6,0,Math.PI*2);
+  ctx.setLineDash([3,2]);
+  ctx.strokeStyle = "rgba(15,23,42,0.9)";
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+}
+
+function drawTensionMeter(){
+  const x = W - 60;
+  const y = 70;
+  const width = 20;
+  const height = 220;
+
+  ctx.save();
+  ctx.translate(x, y);
+
+  ctx.fillStyle = "#020617";
+  ctx.fillRect(-4, -4, width+8, height+8);
+  ctx.fillStyle = "#111827";
+  ctx.fillRect(0, 0, width, height);
+
+  const t = clamp(nodule.tension, 0, 1);
+  const filledHeight = height * t;
+
+  const r = Math.round(80 + 140 * t);
+  const g = Math.round(220 - 150 * t);
+  const b = 70;
+  ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+  ctx.fillRect(0, height - filledHeight, width, filledHeight);
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#e5e7eb";
+  ctx.strokeRect(0, 0, width, height);
+
+  ctx.restore();
+}
+
+function hitHandle(px,py){
+  return Math.hypot(px - handle.x, py - handle.y) <= handle.r + 6;
+}
+
+// 수직 드래그 이벤트
+canvas.addEventListener("mousedown", e=>{
+  const r = canvas.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
+  if(!hitHandle(x,y)) return;
+  handle.dragging = true;
+  handle.startMouseY = y;
+  handle.startHandleY = handle.y;
+});
+
+window.addEventListener("mousemove", e=>{
+  if(!handle.dragging) return;
+  const r = canvas.getBoundingClientRect();
+  const y = e.clientY - r.top;
+
+  let rawY = handle.startHandleY + (y - handle.startMouseY);
+  const minY = handle.baseY;
+  const maxY = handle.baseY + handle.maxDrag;
+  rawY = Math.max(minY, Math.min(maxY, rawY));
+
+  let rawT = (rawY - handle.baseY) / handle.maxDrag;
+  rawT = clamp(rawT, 0, 1);
+
+  if (mode === "trigger" && stuck) {
+    targetTension = rawT;
+  } else {
+    handle.y = rawY;
+    handle.x = handle.baseX;
+    targetTension = rawT;
+  }
+});
+
+window.addEventListener("mouseup", ()=>{
+  handle.dragging = false;
+  targetTension = 0;
+});
+
+window.addEventListener("mouseleave", ()=>{
+  handle.dragging = false;
+  targetTension = 0;
+});
+
+loop();
 </script>
 
-
-<!-- ============================= -->
-<!--   ⛳️ PWA Service Worker 등록   -->
-<!-- ============================= -->
+<!-- PWA service worker 등록 -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log("Service Worker Registered:", reg.scope))
-      .catch(err => console.log("SW Registration Failed:", err));
+      .then(reg => console.log('ServiceWorker registered:', reg.scope))
+      .catch(err => console.log('ServiceWorker registration failed:', err));
   });
 }
 </script>
