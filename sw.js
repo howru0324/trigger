@@ -1,4 +1,4 @@
-const CACHE_NAME = "trigger-finger-pwa-v1";
+const CACHE_NAME = "trigger-finger-pwa-v2";
 
 const ASSETS = [
   "./",
@@ -36,3 +36,4 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
